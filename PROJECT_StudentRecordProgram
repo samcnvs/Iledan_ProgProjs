@@ -1,0 +1,186 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <conio.h>
+#include <string.h>
+
+void input();
+void display();
+void del();
+void edit();
+void exit1();
+
+struct student_info
+{
+    char name[30];
+    int mark;
+};
+
+
+int main()
+{
+     int choice;
+    {
+     do
+  {
+        printf("\n\t Student Record Program \n");
+        printf("\n\t -------Menu------- \n\n");
+        printf(" Enter 1 to input student name and marks  \n");
+        printf(" Enter 2 to view list of students  \n");
+        printf(" Enter 3 to delete student's information \n");
+        printf(" Enter 4 to edit details \n");
+        printf(" Enter 5 for Exit \n\n");
+
+        printf("\t\tEnter your choice: ");
+        scanf("%i", &choice);
+
+        switch(choice)
+        {
+            case 1: input(); break;
+            case 2: display(); break;
+            case 3: del(); break;
+            case 4: edit(); break;
+            case 5: exit1(); break;
+            default: printf ("\n Please enter 1,2,3,4, or 5 only. \n"); break;
+        }
+}
+ while (choice != 6);    }
+}
+
+
+void input()
+{
+    FILE *fp;
+    struct student_info details;
+    char another = 'y';
+    system("cls");
+    fp = fopen("StudentInfo.txt","ab+");
+    if(fp == NULL)
+    {
+       printf("Can't open file");
+       exit(0);
+    }
+    fflush(stdin);
+    while(another == 'y')
+    {
+        printf("\t -----Input Student Information----- \n\n");
+        printf(" \n\t\t\tEnter Student's Name     : ");
+        gets(details.name);
+        printf(" \n\t\t\tEnter Student's Mark     : ");
+        scanf("%d",&details.mark);
+        fwrite(&details, sizeof(details), 1, fp);
+            printf("\n\t\t\tAdd another record? \nEnter Y if Yes \nPress any key if No ");
+        fflush(stdin);
+        another = getch();
+            system("cls");
+        fflush(stdin);
+    }
+    fclose(fp);
+    }
+
+void display()
+{
+    FILE *fp;
+    int i=1;
+    struct student_info details;
+    system("cls");
+    printf("\t\t\t\t-------Student's Record-------\n\n\n");
+    printf("S.No   Name of Student\t\tMark \n");
+    printf("------------------------------------------------\n");
+    fp = fopen("StudentInfo.txt","rb+");
+    if(fp==NULL)
+    {
+        printf("\n\nCan't open file\n");
+        exit(0);
+    }
+    while(fread(&details,sizeof(details),1,fp) == 1)
+    {
+    fflush(stdin);
+    printf("%d.      %s\t\t\t %d\t  \n", i, details.name, details.mark);
+    i++;
+    }
+    fclose(fp);
+}
+
+void del()
+{
+    char stname[25];
+    FILE *fp,*ft;
+    struct student_info details;
+    system("cls");
+    printf("\t\t\t\t-------Delete Student's Record-------\n\n\n");
+    printf("\n\nEnter name of student to delete their record : ");
+    fflush(stdin);
+    gets(stname);
+    fp = fopen("StudentInfo.txt","rb+");
+    if(fp==NULL)
+    {
+        printf("\n\nCan't open file\n");
+        exit(0);
+    }
+    ft = fopen("StudentInfo2.txt", "wb+");
+    if(ft==NULL)
+    {
+        printf("\n\nCan't open file\n");
+        exit(0);
+    }
+    while(fread(&details,sizeof(details),1,fp) == 1)
+    {
+    if(strcmp(stname,details.name)!=0)
+    fwrite(&details, sizeof(details), 1, ft);
+    }
+    fclose(fp);
+    fclose(ft);
+    remove("StudentInfo.txt");
+    rename("StudentInfo2.txt","StudentInfo.txt");
+}
+
+void edit()
+{
+    char stname[25];
+    FILE *fp;
+    struct student_info details;
+    system("cls");
+    printf("\t\t\t\t-------Edit Student's Record-------\n\n\n");
+    printf("\n\nEnter name of student to edit their record : ");
+    fflush(stdin);
+    gets(stname);
+    fp = fopen("StudentInfo.txt","rb+");
+    if(fp==NULL)
+    {
+        printf("\n\nCan't open file\n");
+        exit(0);
+    }
+    rewind(fp);
+    fflush(stdin);
+    while(fread(&details,sizeof(details),1,fp) == 1)
+    {
+        if(strcmp(stname,details.name)==0)
+        {
+        printf(" \n\t\t\tEnter Student's Name     : ");
+        gets(details.name);
+        printf(" \n\t\t\tEnter Student's Mark     : ");
+        scanf("%d",&details.mark);
+
+        fseek(fp ,-sizeof(details),SEEK_CUR);
+        fwrite(&details, sizeof(details), 1, fp);
+        break;
+        }
+    }
+    fclose(fp);
+}
+
+void exit1()
+{
+    system("cls");
+                    printf("\n\n\n\n");
+                    printf("\n\n\t\t\t\t\tExiting . . . .\n\n");
+                    for(int i =1; i<= 120; i++)
+                    {
+                        _sleep(3);
+                        printf("%c", 219);
+                    }
+                        printf("\n\n\t\t\t\tSuccessfully exited from the program. \n");
+
+exit(1);
+}
+
