@@ -1,1 +1,171 @@
-// Source Code
+//Source Code #1
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <conio.h>
+#include <ctype.h>
+
+
+#define CLASS_SIZE 5
+#define QUIZ_SIZE 5
+#define PASSING_SCORE 75
+
+
+//Prototypes
+
+int count_num_passers(float average[]);
+void compute_min_score(const int scores[][QUIZ_SIZE], int min_score[]);//1st parameter: from, 2nd parameter: to
+void compute_max_score(const int scores[][QUIZ_SIZE], int max_score[]);
+void compute_average_score(const int scores[][QUIZ_SIZE], float average_score[]);
+void title(void);
+void output_screen(const int scores[][QUIZ_SIZE], float average[], int lowest[], int highest[], int passer_count);
+
+
+//Main
+
+
+
+int main()
+{
+  const int quiz_scores[CLASS_SIZE][QUIZ_SIZE] = {{51,52,53,54,55},{65,66,67,68,69},{71,79,87,97,70},{83,85,86,68,98},{99,100,93,94,90}};
+
+  static int min_score[CLASS_SIZE] = {0}, max_score[CLASS_SIZE] = {0};
+  static float average_score[CLASS_SIZE] = {0};
+
+  int num_passers;
+
+  //Computation
+
+  compute_average_score(quiz_scores,average_score);
+  compute_min_score(quiz_scores,min_score);
+  compute_max_score(quiz_scores,max_score);
+
+  num_passers = count_num_passers(average_score);
+
+  system("COLOR F0");
+  title();
+
+  //Display the scores and other information to user
+  output_screen(quiz_scores, average_score, min_score, max_score, num_passers);
+
+  printf("\n\n  Press any key to exit \n\n\n\n ");
+  getch();
+  exit(0);
+}
+
+
+
+//Functions
+
+//Gets the lowest score among the elements in the array passed to it
+void compute_min_score(const int scores[][QUIZ_SIZE], int min_score[])
+{
+  for (int i = 0; i < CLASS_SIZE; i++)
+  {
+    int lowest = scores[i][0];
+
+    for (int j = 1; j < QUIZ_SIZE; j++)
+    {
+      if (scores[i][j] < lowest)
+      {
+        lowest = scores[i][j];
+      }
+    }
+    min_score[i] = lowest;
+  }
+}
+
+//Gets the highest score among the elements in the array passed to it
+void compute_max_score(const int scores[][QUIZ_SIZE], int max_score[])
+{
+  for (int i = 0; i < CLASS_SIZE; i++)
+  {
+    int highest = scores[i][0];
+
+    for (int j = 1; j < QUIZ_SIZE; j++)
+    {
+      if (scores[i][j] > highest)
+      {
+        highest = scores[i][j];
+      }
+    }
+    max_score[i] = highest;
+  }
+}
+
+//counts the number of passers, the criteria for passing is a score greater than 75, inclusive
+int count_num_passers(float average[])
+{
+  int num_passers = 0;
+
+  for (int i = 0; i < CLASS_SIZE; i++)
+  {
+    if (average[i] >= PASSING_SCORE)
+    {
+      num_passers++;
+    }
+  }
+
+  return num_passers;
+}
+
+//Gets the average score of the elements from the array, sum of values divided by class size
+void compute_average_score(const int scores[][QUIZ_SIZE], float average_score[])
+{
+  float average_score_buffer;
+
+  for (int i = 0; i < CLASS_SIZE; i++)
+  {
+    int total_score = 0;
+
+    for (int j = 0; j < QUIZ_SIZE; j++)
+    {
+      total_score += scores[i][j];
+    }
+    average_score_buffer = (float) total_score/QUIZ_SIZE;
+    average_score[i]= average_score_buffer;
+  }
+}
+
+//Displays the title
+void title(void)
+{
+  printf(
+    "\n  Submitted by Team C | Activity 1 | Computer Programming 2 | BSIS - 1AB\n"
+    "  ------------------------------------------------------------------------\n"
+    "                          STUDENT ASSESSMENT TRACKER                      \n"
+    "  ------------------------------------------------------------------------\n");
+}
+
+//Displays the values of the array passed to it
+void output_screen(const int scores[][QUIZ_SIZE], float average[], int lowest[], int highest[], int passer_count)
+{
+  printf("\n  Here's the summary of quiz scores in a class of %i student/s:\n\n", CLASS_SIZE);
+
+  printf("  Number of Passers:\x1b[38;5;20m %i \x1b[30m\n\n", passer_count);
+
+  for (int i = 0; i < CLASS_SIZE; i++)
+  {
+    printf("  Student #%i:\n\n    Quiz Scores:", (i+1));
+
+    for (int j = 0; j < QUIZ_SIZE; j++)
+    {
+      printf(" Q%i:\x1b[38;5;20m %i\x1b[30m",(j+1), scores[i][j]);
+    }
+
+    printf("\x1b[30m\n"); //change text to normal(black)
+
+    printf(
+    "\n    Result:%s \x1b[30m\n"
+    "    Average Score:\x1b[38;5;20m %.2f \x1b[30m\n"
+    "    Lowest Score:\x1b[38;5;20m %i \x1b[30m\n"
+    "    Highest Score:\x1b[38;5;20m %i \x1b[30m\n\n",
+    average[i] >= PASSING_SCORE ? "\x1b[38;5;28m Passed" : "\x1b[38;5;88m Failed",
+    average[i],
+    lowest[i],
+    highest[i]
+    );
+  }
+
+  return;
+}

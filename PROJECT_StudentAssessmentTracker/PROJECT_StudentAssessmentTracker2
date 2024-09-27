@@ -1,0 +1,345 @@
+//Source Code #2
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <windows.h>
+#include <string.h>
+#include <conio.h>
+#include <ctype.h>
+#include <time.h>
+
+#define CLASS_SIZE 5
+#define QUIZ_SIZE 5
+#define PASSING_SCORE 75
+#define MIN 50
+#define MAX 100
+
+
+//Prototypes
+
+
+int is_integer(void);
+int count_num_passers(float average[]);
+int score_prompt(int scores[][QUIZ_SIZE], int is_edit_mode);
+void compute_min_score(int scores[][QUIZ_SIZE], int min_score[]);//1st parameter: from, 2nd parameter: to
+void compute_max_score(int scores[][QUIZ_SIZE], int max_score[]);
+void compute_average_score(int scores[][QUIZ_SIZE], float average_score[]);
+void title(void);
+void loading(void);
+void get_quiz_scores(int scores[][QUIZ_SIZE]);
+void confirm(int scores[][QUIZ_SIZE]);
+void output_screen(int scores[][QUIZ_SIZE], float average[], int lowest[], int highest[], int passer_count);
+
+
+
+//Main
+
+
+
+int main()
+{
+  //initialize arrays as static, so it can be modified across function calls
+  static int quiz_scores[CLASS_SIZE][QUIZ_SIZE] = {0}, min_score[CLASS_SIZE] = {0}, max_score[CLASS_SIZE] = {0};
+  static float average_score[CLASS_SIZE] = {0};
+  int num_passers;
+
+  loading();
+  title();
+  get_quiz_scores(quiz_scores);
+
+  //Computation
+
+  compute_average_score(quiz_scores,average_score);
+  compute_min_score(quiz_scores,min_score);
+  compute_max_score(quiz_scores,max_score);
+
+  num_passers = count_num_passers(average_score);
+
+  system("cls");
+  title();
+
+  //Display the scores and other information to user
+  output_screen(quiz_scores, average_score, min_score, max_score, num_passers);
+
+  printf("\n\n  Press any key to exit \n\n\n\n ");
+  getch();
+  exit(0);
+}
+
+
+
+//Functions
+
+
+//Returns -1 if the user input is a string or other data type other than integer, otherwise returns the input
+int is_integer(void)
+{
+  char number_buffer[16];
+  int n, parsedNum, charCount;
+
+  printf("\x1b[38;5;20m");
+
+  fgets(number_buffer, sizeof(number_buffer), stdin);
+
+  n = sscanf(number_buffer, "%i%n", &parsedNum, &charCount);
+
+  printf("\x1b[30m");
+
+  return (n == 1 && strlen(number_buffer) == charCount+1 && number_buffer[0] != '\n' ? parsedNum : -1);
+}
+
+//Asks for student number and the score, forces the user to re-enter values if the previous input was invalid or already existing
+int score_prompt(int scores[][QUIZ_SIZE], int is_edit_mode)
+{
+  int is_within_range, check, student_number;
+
+  printf("\n  Enter the student number: ");
+
+  check = is_integer();//returning -1 means the input is not a valid integer input
+
+  if ((check != -1) && (check >= 1 && check <= CLASS_SIZE))
+  {
+    student_number = check;
+
+    if (scores[student_number-1][0] != 0 && is_edit_mode == 0)
+    {
+      printf("  Score for student #%i has already been entered. You can edit the scores later.\n", student_number);
+      return -1;
+    }
+
+    for (int i = 0; i < QUIZ_SIZE; i++)
+    {
+      printf("  Quiz #%i: ", (i+1));
+
+      check = is_integer();
+      is_within_range = check >= MIN && check <= MAX;
+
+      if ((check != -1) && is_within_range) //if the input is valid & within the range,
+      {
+        scores[student_number-1][i] = check; //assign the input to the corresponding array index
+      }
+
+      else if (is_within_range == 0)//if the input is not in range
+      {
+        do
+        {
+          printf("  Please choose an integer between 50 and 100: ");
+          check = is_integer();
+        }
+        while ((check == -1) || check < MIN || check > MAX);
+
+        scores[student_number-1][i] = check;
+        printf("\n");
+      }
+    }
+  }
+
+  else
+  {
+    printf("  Please choose an integer between 1 and %i.\n", CLASS_SIZE);
+    return -1;
+  }
+
+  return 0;
+}
+
+//Gets the lowest score among the elements in the array passed to it
+void compute_min_score(int scores[][QUIZ_SIZE], int min_score[])
+{
+  for (int i = 0; i < CLASS_SIZE; i++)
+  {
+    int lowest = scores[i][0];
+
+    for (int j = 1; j < QUIZ_SIZE; j++)
+    {
+      if (scores[i][j] < lowest)
+      {
+        lowest = scores[i][j];
+      }
+    }
+    min_score[i] = lowest;
+  }
+}
+
+//Gets the highest score among the elements in the array passed to it
+void compute_max_score(int scores[][QUIZ_SIZE], int max_score[])
+{
+  for (int i = 0; i < CLASS_SIZE; i++)
+  {
+    int highest = scores[i][0];
+
+    for (int j = 1; j < QUIZ_SIZE; j++)
+    {
+      if (scores[i][j] > highest)
+      {
+        highest = scores[i][j];
+      }
+    }
+    max_score[i] = highest;
+  }
+}
+
+//counts the number of passers, the criteria for passing is a score greater than 75, inclusive
+int count_num_passers(float average[])
+{
+  int num_passers = 0;
+
+  for (int i = 0; i < CLASS_SIZE; i++)
+  {
+    if (average[i] >= PASSING_SCORE)
+    {
+      num_passers++;
+    }
+  }
+
+  return num_passers;
+}
+
+//Gets the average score of the elements from the array, sum of values divided by class size
+void compute_average_score(int scores[][QUIZ_SIZE], float average_score[])
+{
+  float average_score_buffer;
+  for (int i = 0; i < CLASS_SIZE; i++)
+  {
+    int total_score = 0;
+
+    for (int j = 0; j < QUIZ_SIZE; j++)
+    {
+      total_score += scores[i][j];
+    }
+    average_score_buffer = (float) total_score/CLASS_SIZE;
+    average_score[i]= average_score_buffer;
+  }
+}
+
+//Adds a delay of specified milliseconds
+void delay(unsigned int secs)
+{
+  clock_t interval = clock() + secs;
+  while(interval > clock());
+}
+
+//Displays the title
+void title(void)
+{
+  printf(
+    "\n  Submitted by Team C | Activity 1 | Computer Programming 2 | BSIS - 1AB\n"
+    "  ------------------------------------------------------------------------\n"
+    "                          STUDENT ASSESSMENT TRACKER                      \n"
+    "  ------------------------------------------------------------------------\n");
+}
+
+//Displays the loading animation, hides the console cursor during the process
+void loading(void)
+{
+  HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+  CONSOLE_CURSOR_INFO info;
+  info.dwSize = 100;
+  info.bVisible = FALSE;
+  SetConsoleCursorInfo(consoleHandle, &info);
+
+  system("COLOR F5");
+  printf("\n\n\n\n\n\n\n\n\n\t\t\t\t     ENTERING THE STUDENT ASSESSMENT TRACKER... \n\n\t\t\t    ");
+
+  for(int i =1; i<= 60; i++)
+  {
+    delay(20);
+    printf("%c", 219);
+  }
+
+  printf("\n\n\t\t\t\t\t\t    YOU'RE IN!");
+
+  delay(2000);
+  system("cls");
+  system("COLOR F0");
+
+  info.bVisible = TRUE;
+  SetConsoleCursorInfo(consoleHandle, &info);
+}
+
+//loops CLASS_SIZE times, calls the function score_prompt() to wait for flag
+void get_quiz_scores(int scores[][QUIZ_SIZE])
+{
+  for (int i = 0; i < CLASS_SIZE; i++)
+  {
+    i+= score_prompt(scores,0);
+  }
+
+  confirm(scores);
+}
+
+//confirms if the values entered by user is correct, if not, the user is asked to edit the score associated with selected student number
+void confirm(int scores[][QUIZ_SIZE])
+{
+  system("cls");
+  title();
+
+  for (int i = 0; i < CLASS_SIZE; i++)
+  {
+    printf("  Student #%i:\n    Quiz Scores:", (i+1));
+
+    for (int j = 0; j < QUIZ_SIZE; j++)
+    {
+      printf(" Q%i:\x1b[38;5;20m %i\x1b[30m",(j+1), scores[i][j]);
+    }
+    printf("\x1b[30m\n\n"); //change text to normal(black)
+  }
+
+  printf("\n  Are the scores final? Press [Y] for Yes and [N] for No ");
+
+  char response = toupper(getch());
+  int validator;
+
+  switch (response)
+  {
+    case 'Y': return;
+    case 'N':
+      printf("\n");
+      validator = score_prompt(scores, 1);
+
+      while (validator == -1)
+      {
+        validator = score_prompt(scores, 1);
+      }
+
+      confirm(scores);
+      break;
+
+    default: confirm(scores);
+  }
+
+  return;
+}
+
+//Displays the values of the array passed to it
+void output_screen(int scores[][QUIZ_SIZE], float average[], int lowest[], int highest[], int passer_count)
+{
+  printf("\n  Here's the summary of quiz scores in a class of %i student/s:\n\n", CLASS_SIZE);
+
+  printf("  Number of Passers:\x1b[38;5;20m %i \x1b[30m\n\n", passer_count);
+
+  for (int i = 0; i < CLASS_SIZE; i++)
+  {
+    printf("  Student #%i:\n\n    Quiz Scores:", (i+1));
+
+    for (int j = 0; j < QUIZ_SIZE; j++)
+    {
+      printf(" Q%i:\x1b[38;5;20m %i\x1b[30m",(j+1), scores[i][j]);
+    }
+
+    printf("\x1b[30m\n"); //change text to normal(black)
+
+    printf(
+    "\n    Result:%s \x1b[30m\n"
+    "    Average Score:\x1b[38;5;20m %.2f \x1b[30m\n"
+    "    Lowest Score:\x1b[38;5;20m %i \x1b[30m\n"
+    "    Highest Score:\x1b[38;5;20m %i \x1b[30m\n\n",
+    average[i] >= PASSING_SCORE ? "\x1b[38;5;28m Passed" : "\x1b[38;5;88m Failed",
+    average[i],
+    lowest[i],
+    highest[i]
+    );
+  }
+
+  return;
+}
